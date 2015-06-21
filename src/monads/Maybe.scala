@@ -7,21 +7,21 @@
 package monads
 
 
-sealed trait Maybe[A] {
+sealed trait Maybe[+A] {
   def map[B](f : A => B) : Maybe[B]
   def flatMap[B](fm : A => Maybe[B]) : Maybe[B]
   def run : A
-  def _catch(fm : String => Maybe[A]) : Maybe[A]
+  def _catch[C>:A](fm : String => Maybe[C]) : Maybe[C]
 }
 
-case class Fail[A](msg : String) extends Maybe[A] {
-  def map[B](f : A => B) = Fail(msg)
+case class Fail(msg : String) extends Maybe[Nothing] {
+  def map[B](f : Nothing => B) = Fail(msg)
 
-  def flatMap[B](fm : A => Maybe[B]) : Maybe[B] = Fail(msg)
+  def flatMap[B](fm : Nothing => Maybe[B]) : Maybe[B] = Fail(msg)
 
   def run : Nothing = sys.error(msg)
 
-  def _catch(fm : String => Maybe[A]) : Maybe[A] = fm(msg)
+  def _catch[C](fm : String => Maybe[C]) : Maybe[C] = fm(msg)
 }
 
 case class Success[A](x : A) extends Maybe[A] {
@@ -31,7 +31,7 @@ case class Success[A](x : A) extends Maybe[A] {
 
   def run : A = x
 
-  def _catch(fm : String => Maybe[A]) : Maybe[A] = this
+  def _catch[C>:A](fm : String => Maybe[C]) : Maybe[C] = this
 }
 
 object Maybe {

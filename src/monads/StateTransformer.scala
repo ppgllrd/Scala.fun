@@ -7,17 +7,17 @@
 
 package monads
 
-class ST[S,A](val fst : S => (S,A)) {
+case class ST[S,A](fst : S => (S,A)) {
   
   def map[B](f : A => B) : ST[S,B] =
-    new ST((st : S) => {
-      val (s1,x) = fst(st)
+    ST((st : S) => {
+      val (s1,x) = this.fst(st)
       (s1, f(x))
     })
 
   def flatMap[B](f : A => ST[S,B]) : ST[S,B] =
-    new ST((s : S) => {
-      val (s1,x) = fst(s)
+    ST((s : S) => {
+      val (s1,x) = this.fst(s)
       val st = f(x)
       st.fst(s1)
     })
@@ -30,77 +30,37 @@ class ST[S,A](val fst : S => (S,A)) {
 }
 
 object ST {
-  def pure[S,A](x : A) : ST[S,A] = new ST(s => (s,x))
+  def pure[S,A](x : A) : ST[S,A] = ST(s => (s,x))
 
-  def read[S] : ST[S,S] = new ST(s => (s,s))
+  def read[S] : ST[S,S] = ST(s => (s,s))
 
-  def write[S](s : S) : ST[S,Unit] = new ST(_ => (s,Unit))
+  def write[S](s : S) : ST[S,Unit] = ST(_ => (s,Unit))
 }
 
 
-object Demo extends App {
+object DemoST extends App {
   import ST._
 
-  val ej =
+  val ex =
     write(10) >>
     read >>= { (y:Int) =>
     pure(y)
     }
 
 
-  val v = ej.run(0)
+  val v = ex.run(0)
 
   println(v)
 
 
-  val ej1 =
+  val ex1 =
     for(_ <- write(10);
         _ <- write(20);
         x <- pure(5);
         z <- read) yield (x,z)
 
 
-  val v1 = ej1.run(0)
+  val v1 = ex1.run(0)
 
   println(v1)
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

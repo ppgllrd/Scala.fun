@@ -7,7 +7,7 @@
 
 package monads
 
-case class ST[S,A](fst : S => (S,A)) {
+case class ST[S,+A](fst : S => (S,A)) {
   
   def map[B](f : A => B) : ST[S,B] =
     ST((st : S) => {
